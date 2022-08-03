@@ -1,5 +1,6 @@
 #RSL - created this program 7/28/22
 # this module reads the wind speed as a button each turn
+# 8/3- added this comment to force an update to the verison on github. no other changes
 
 # NOTE: I found that with no adjustment value, my meter was giving
 # the expected values, but the project suggests that an adjustment
