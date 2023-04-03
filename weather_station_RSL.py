@@ -16,15 +16,16 @@ import statistics
 from gpiozero import Button
 from gpiozero import MCP3008
 import bme280_sensor
-#import vane_test.py - putting code inline here
+#import vane_test.py - putting code inline here instead of in separate file
 import statistics
 import ds18b20_therm
 
+#print the time in pacific timezone for each period
 def print_time():
-     tz_LA = pytz.timezone('America/Los_Angeles')
      today = date.today()
      # Textual month, day and year
      d2 = today.strftime("%B %d, %Y")
+     tz_LA = pytz.timezone('America/Los_Angeles')
      datetime_LA = datetime.now(tz_LA)
      print("Los Angeles date/time:", d2, datetime_LA.strftime("%H:%M:%S"))
      return
@@ -40,6 +41,7 @@ BUCKET_SIZE= 0.2794  #the amount of water in mm to make it tip
 rain_sensor = Button(6)
 
 #set the GPIO to use for the LED and set up mode
+#Thisis an LED I added that blinks at the end of each collection period
 led_pin = 18
 GPIO.setup(led_pin, GPIO.OUT)
 
@@ -116,15 +118,18 @@ wind_speed_sensor.when_pressed = spin
 wg = 0
 wind_gust = 0
 
-temp_probe = ds18b20_therm.DS18B20() 
+#ground temp probe
+temp_probe = ds18b20_therm.DS18B20()
 rain_sensor.when_pressed = bucket_tipped  #initiate collection of rain
 speed_start_time = time.time()
 
-#connect to DB to store out data
+#This establishes a link to our database to store the data we receive from the sensors
 db = database.weather_database()
 
 #light an LED indicator to show data collection in progress
 #todo: how to turn it off when program stops?
+#we didn't do this in class so don't call this funtion if you haven't connected
+#an LED for this
 def led_blink():
      GPIO.output(led_pin, True)
      GPIO.output(led_pin, False)
@@ -132,8 +137,8 @@ def led_blink():
      GPIO.output(led_pin, True)
      return
 
-# Infinite loop to calculate gust and windspeed
 
+#print welcome and print the conditions
 print ("Welcome to Weather Station - Beginning Data Collection")
 print_time()
 print ("-------------------------------------------------------")
@@ -142,6 +147,8 @@ print ("Wind gust interval is ", round(wind_interval/60,2), " mins.")
 print ("Wind speed interval is ", round(speed_interval/60,2), " mins.")
 print ("-------------------------------------------------------")
 print(" ")
+
+# Loop to collect sensor data forever
 while True:
 
      led_blink()
@@ -149,8 +156,11 @@ while True:
      #print ("*****")
      #print ("Beginning new collection period.")
      #print ("*****")
+     
+     #This loop is for one collection period - go as long as the interval is and collect data
      while time.time() - collection_time <= overall_interval:
 
+         #this loop is to calc and store max wind gust
          start_time = time.time()
          while time.time() - start_time <= wind_interval:
              reset_wind()
@@ -160,8 +170,6 @@ while True:
 
          wg = max(store_speeds)
          if wg > wind_gust: wind_gust = wg
-
-
 
 
      print ("*****")
@@ -190,12 +198,10 @@ while True:
 
      print("hum= ", round(hum,2), " pres= ", round(pres,2), " temp= ", round(temp,2))
 
-     print ("gnd temp (C)= ", temperature) 
-    
+     print ("gnd temp (C)= ", temperature)
 
      #write values for the period to database
      db.insert(temp, temperature, 0, pres, hum, wind_direction, wind_speed, wind_gust, rain_fall)
-
 
 
      #clear values to start next period
