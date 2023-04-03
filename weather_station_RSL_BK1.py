@@ -5,7 +5,6 @@
 # the expected values, but the project suggests that an adjustment
 # of 1.18 may be needed to compensate for wind energy loss
 
-import RPi.GPIO as GPIO
 import database
 import math
 import time
@@ -21,10 +20,10 @@ import statistics
 import ds18b20_therm
 
 def print_time():
-     tz_LA = pytz.timezone('America/Los_Angeles')
      today = date.today()
-     # Textual month, day and year
+     # Textual month, day and year	
      d2 = today.strftime("%B %d, %Y")
+     tz_LA = pytz.timezone('America/Los_Angeles') 
      datetime_LA = datetime.now(tz_LA)
      print("Los Angeles date/time:", d2, datetime_LA.strftime("%H:%M:%S"))
      return
@@ -39,10 +38,6 @@ tip_count = 0
 BUCKET_SIZE= 0.2794  #the amount of water in mm to make it tip
 rain_sensor = Button(6)
 
-#set the GPIO to use for the LED and set up mode
-led_pin = 18
-GPIO.setup(led_pin, GPIO.OUT)
-
 def reset_rainfall():
      global tip_count
      tip_count = 0
@@ -51,11 +46,11 @@ def reset_rainfall():
 def bucket_tipped():
     global tip_count
     tip_count +=1
-    # print (tip_count * BUCKET_SIZE)
+    # print (tip_count * BUCKET_SIZE) 
     return
 
 #this is for winddirection sensor
-adc = MCP3008(channel=0)
+adc = MCP3008(channel=0)  
 
 #wind speed
 store_speeds = []
@@ -116,21 +111,12 @@ wind_speed_sensor.when_pressed = spin
 wg = 0
 wind_gust = 0
 
-temp_probe = ds18b20_therm.DS18B20() 
+temp_probe = ds18b20_therm.DS18B20()
 rain_sensor.when_pressed = bucket_tipped  #initiate collection of rain
 speed_start_time = time.time()
 
 #connect to DB to store out data
 db = database.weather_database()
-
-#light an LED indicator to show data collection in progress
-#todo: how to turn it off when program stops?
-def led_blink():
-     GPIO.output(led_pin, True)
-     GPIO.output(led_pin, False)
-     time.sleep(0.25)
-     GPIO.output(led_pin, True)
-     return
 
 # Infinite loop to calculate gust and windspeed
 
@@ -144,13 +130,12 @@ print ("-------------------------------------------------------")
 print(" ")
 while True:
 
-     led_blink()
      collection_time = time.time()
      #print ("*****")
      #print ("Beginning new collection period.")
      #print ("*****")
      while time.time() - collection_time <= overall_interval:
-
+         
          start_time = time.time()
          while time.time() - start_time <= wind_interval:
              reset_wind()
@@ -160,10 +145,10 @@ while True:
 
          wg = max(store_speeds)
          if wg > wind_gust: wind_gust = wg
+         
+         
 
-
-
-
+         
      print ("*****")
      print ("Ended collection period...writing values to file and clearing")
      print_time()
@@ -180,18 +165,17 @@ while True:
 
      #Print the values for the period
      print("wind speed (km/hr)= ", wind_speed, "gust= ", wind_gust)
-
+     
      if wind_direction in str_directions:
          print("wind dir val= ", wind_direction, "  wind dir: ", str_directions[wind_direction])
      else:
          print("Undefined wind direction")
-
+         
      print("rainfail (in) = ", rain_fall)
 
      print("hum= ", round(hum,2), " pres= ", round(pres,2), " temp= ", round(temp,2))
 
-     print ("gnd temp (C)= ", temperature) 
-    
+     print ("gnd temp (C)= ", temperature)
 
      #write values for the period to database
      db.insert(temp, temperature, 0, pres, hum, wind_direction, wind_speed, wind_gust, rain_fall)
@@ -205,9 +189,27 @@ while True:
             store_speeds.clear()
             speed_start_time = time.time()
             # print("reset speed window")
-
+     
      wind_gust = 0
      reset_rainfall()
      print ("Successfully saved data and reset for new period.")
      print("*****")
      print(" ")
+
+     
+     
+     
+
+
+
+     
+     
+
+
+
+
+
+
+
+ 
+
